@@ -151,10 +151,25 @@ describe('the Helix Pi Editor', () => {
       return editor({DOM: mockedResponse}).state$;
     });
 
+    const expectedAnimation = {
+      start: 250,
+      end: 500,
+      actors: {
+        '0': [
+          { frame: 250, position: {x: 150, y: 150} },
+          { frame: 350, position: {x: 200, y: 300} }
+        ]
+      }
+    };
+
     collectionAssert.assertEqual([
       onNext(200, state => state.animations.length === 0),
       onNext(250, state => state.animations.length === 0),
-      onNext(500, state => state.animations.length === 1)
+      onNext(500, state => {
+        assert.deepEqual(state.animations[0], expectedAnimation);
+
+        return true;
+      })
     ], results.messages);
 
     done();

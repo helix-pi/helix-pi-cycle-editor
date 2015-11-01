@@ -20,7 +20,29 @@ function editorView () {
 function changeMode (mode) {
   return state => {
     if (state.mode === 'recording' && mode === 'recording') {
-      return Object.assign({}, state, {mode: 'editing', animations: state.animations.concat([1])});
+      const animation = {
+        start: 250,
+        end: 500,
+        actors: {
+          '0': [
+            {
+              frame: 250,
+              position: {
+                x: 150,
+                y: 150
+              }
+            },
+            {
+              frame: 350,
+              position: {
+                x: 200,
+                y: 300
+              }
+            }
+          ]
+        }
+      }
+      return Object.assign({}, state, {mode: 'editing', animations: state.animations.concat([animation])});
     }
 
     return Object.assign({}, state, {mode});
