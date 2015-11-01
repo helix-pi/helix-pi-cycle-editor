@@ -7,6 +7,8 @@ Rx.config.longStackSupport = true;
 
 const {div, button} = require('hyperscript-helpers')(h);
 
+import Actor from './actor';
+
 function editorView () {
   return (
     div('.editor', [
@@ -23,50 +25,6 @@ function startRecording (state) {
   return Object.assign({}, state, {mode: 'recording', animations: state.animations.concat([{actors: {}}])});
 }
 
-function moveActor (event) {
-  return function updateActorPosition (actor) {
-    return Immutable(Object.assign(actor.asMutable(), {position: {x: event.clientX, y: event.clientY}}))
-  }
-}
-
-function justUpdateModelForTheSakeOfUpdating () {
-  return function noop (actor) { return actor };
-}
-
-export function Actor ({DOM, props}, name) {
-  const actorDOM = DOM.select(`.actor-${name}`);
-  const initialState = Immutable({position: {x: 150, y: 150}, name});
-
-  const mousedown$ = actorDOM.events('mousedown');
-  const mousemove$ = actorDOM.events('mousemove');
-  const mouseup$ = actorDOM.events('mouseup');
-
-  const selected$ = Rx.Observable.merge(
-    mousedown$.map(_ => true),
-    mouseup$.map(_ => false)
-  ).startWith(false);
-
-  const action$ = Rx.Observable.merge(
-    whileSelected$(selected$, mousemove$).map(moveActor),
-    mousedown$.map(justUpdateModelForTheSakeOfUpdating)
-  );
-
-  function whileSelected$ (selected$, stream$) {
-    return stream$.withLatestFrom(selected$)
-      .filter(([_, selected], __) => selected)
-      .map(([event, selected]) => event);
-  }
-
-  const model$ = action$
-    .startWith(initialState)
-    .scan((state, action) => action(state));
-
-  return {
-    DOM: Rx.Observable.just(h('.actor .actor-' + name, 'hey')),
-    model$
-  };
-}
-
 function updateActor (existingActorInAnimation, actorModel) {
   return existingActorInAnimation.concat([{
     position: actorModel.position
@@ -76,7 +34,8 @@ function updateActor (existingActorInAnimation, actorModel) {
 function updateAnimation (animation, actorModel) {
   const getActor = actorModel => {
     return animation.actors && animation.actors[actorModel.name] || [];
-  }
+  };
+
   const updatedActor = updateActor(getActor(actorModel), actorModel);
 
   return Object.assign({}, animation, {
