@@ -1,0 +1,37 @@
+{
+  "name": "y",
+  "version": "0.0.1",
+  "description": "Web editor for Helix Pi, written in Cycle.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/helix-pi/helix-pi-cycle-editor.git"
+  },
+  "keywords": [
+    "game",
+    "development",
+    "cycle.js",
+    "FRP"
+  ],
+  "author": "Nick Johnstone",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/helix-pi/helix-pi-cycle-editor/issues"
+  },
+  "homepage": "https://github.com/helix-pi/helix-pi-cycle-editor",
+  "dependencies": {
+    "@cycle/core": "^5.0.1",
+    "@cycle/dom": "^7.1.1",
+    "babel": "^6.0.14",
+    "babelify": "^7.1.0",
+    "rx": "^4.0.6"
+  },
+  "devDependencies": {
+    "browserify": "^12.0.1",
+    "budo": "^6.0.0",
+    "mocha": "^2.3.3"
+  }
+}
