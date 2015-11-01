@@ -18,14 +18,20 @@ function editorView () {
 }
 
 function changeMode (mode) {
-  return state => Object.assign({}, state, {mode});
+  return state => {
+    if (state.mode === 'recording' && mode === 'recording') {
+      return Object.assign({}, state, {mode: 'editing'});
+    }
+
+    return Object.assign({}, state, {mode});
+  };
 }
 
 export default function editor ({DOM}) {
   const enterRecordMode$ = DOM
     .select('.record')
     .events('click')
-    .map(_ => 'ready-to-record')
+    .map(_ => 'recording')
     .map(changeMode);
 
   const action$ = enterRecordMode$;
