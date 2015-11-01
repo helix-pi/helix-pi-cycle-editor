@@ -86,36 +86,6 @@ describe('the Helix Pi Editor', () => {
     assert.equal(!!editor, true);
   });
 
-  it('can be called', (done) => {
-    const mockedResponse = mockDOMResponse({});
-
-    editor({DOM: mockedResponse});
-
-    done();
-  });
-
-  it('renders the editor', (done) => {
-    const mockedResponse = mockDOMResponse({});
-
-    editor({DOM: mockedResponse}).DOM.subscribe(vtree => {
-      assert.equal(vtree.properties.className, 'editor');
-      assert.deepEqual(vtree.children.map(el => el.properties.className), ['actor', 'actor', 'actor', 'record']);
-      done();
-    });
-  });
-
-  it('allows recording scenarios', (done) => {
-    const mockedResponse = mockDOMResponse({
-      '.record': {
-        click: Rx.Observable.just({})
-      }
-    });
-
-    const editorResponses = editor({DOM: mockedResponse});
-
-    done();
-  });
-
   it('allows recording scenarios', (done) => {
     const scheduler = new Rx.TestScheduler();
 
@@ -138,6 +108,53 @@ describe('the Helix Pi Editor', () => {
       onNext(200, state => state.mode === 'editing'),
       onNext(250, state => state.mode === 'recording'),
       onNext(500, state => state.mode === 'editing')
+    ], results.messages);
+
+    done();
+  });
+
+  it('records the movements of actors', (done) => {
+    const scheduler = new Rx.TestScheduler();
+
+    const click$ = scheduler.createHotObservable(
+      onNext(250),
+      onNext(500)
+    );
+
+    const mousedown$ = scheduler.createHotObservable(
+      onNext(300)
+    );
+
+    const mouseup$ = scheduler.createHotObservable(
+      onNext(400)
+    );
+
+    const mousemove$ = scheduler.createHotObservable(
+      onNext(250, {clientX: 0, clientY: 0}),
+      onNext(350, {clientX: 200, clientY: 300})
+    );
+
+    const mockedResponse = mockDOMResponse({
+      ':root': {
+        mousemove: mousemove$
+      },
+      '.actor-0': {
+        mousedown: mousedown$,
+        mouseup: mouseup$
+      },
+      '.record': {
+        click: click$
+      }
+    });
+
+    const results = scheduler.startScheduler(() => {
+      return editor({DOM: mockedResponse}).state$;
+    });
+
+    collectionAssert.assertEqual([
+      onNext(200, state => state.animations.length === 0),
+      onNext(250, state => state.animations.length === 0),
+      onNext(500, state => state.animations.length === 1)
     ], results.messages);
 
     done();

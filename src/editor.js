@@ -20,7 +20,7 @@ function editorView () {
 function changeMode (mode) {
   return state => {
     if (state.mode === 'recording' && mode === 'recording') {
-      return Object.assign({}, state, {mode: 'editing'});
+      return Object.assign({}, state, {mode: 'editing', animations: state.animations.concat([1])});
     }
 
     return Object.assign({}, state, {mode});
@@ -37,7 +37,8 @@ export default function editor ({DOM}) {
   const action$ = enterRecordMode$;
 
   const initialState = Immutable({
-    mode: 'editing'
+    mode: 'editing',
+    animations: []
   });
 
   const state$ = action$
