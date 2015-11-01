@@ -1,22 +1,54 @@
 import Rx from 'rx';
-import {h} from '@cycle/dom';
+import {h, svg} from '@cycle/dom';
 import Immutable from 'seamless-immutable';
 import _ from 'lodash';
 
 Rx.config.longStackSupport = true;
 
-const {div, button} = require('hyperscript-helpers')(h);
+import hyperScriptHelpers from 'hyperscript-helpers';
+
+const {div, button} = hyperScriptHelpers(h);
 
 import Actor from './actor';
+
+function svgStyle () {
+  return {
+    width: '100%',
+    height: '100%'
+  };
+}
+
+function pathFromState (state) {
+  const lastAnimation = _.last(state.animations);
+
+  if (lastAnimation && lastAnimation.actors && lastAnimation.actors['0'] && lastAnimation.actors['0'].length > 0) {
+    const positions = lastAnimation.actors['0'].map(waypoint => waypoint.position);
+
+    const firstPosition = positions[0];
+    const restOfPositions = positions.slice(1);
+
+    return `
+M ${firstPosition.x} ${firstPosition.y}
+${_.flatten(restOfPositions.map(p => ['L', p.x, p.y])).join(' ')}
+    `;
+  }
+
+  return `
+    M 0 0,
+    Z
+  `;
+}
 
 function editorView (state$, actors$) {
   const actorState$ = actors$.flatMapLatest((actors) => Rx.Observable.combineLatest(actors.map(actor => actor.DOM)));
 
   return Rx.Observable.combineLatest(state$, actorState$, (state, actors) => (
     div('.editor', [
-      button('.record', 'Record'),
-      div('', JSON.stringify(state)),
-      div('.actors', actors)
+      button('.record', state.mode === 'editing' ? 'Record' : 'Stop recording'),
+      div('.actors', actors),
+      svg('svg.canvas', svgStyle(), [
+        svg('path.foo', {d: pathFromState(state)}, [])
+      ])
     ])
   ));
 }
@@ -49,7 +81,7 @@ function updateAnimation (animation, actorModel) {
 
 function animationWaypoint (actorModel) {
   return function updateAnimationState (state) {
-    if (state.animations.length === 0) {
+    if (state.animations.length === 0 || state.mode !== 'recording') {
       return state;
     }
 
