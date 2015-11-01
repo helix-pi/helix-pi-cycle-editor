@@ -17,51 +17,91 @@ function editorView () {
   );
 }
 
+function finishRecording (state) {
+  const animation = {
+    start: 250,
+    end: 500,
+    actors: {
+      '0': [
+      {
+        frame: 250,
+        position: {
+          x: 150,
+          y: 150
+        }
+      },
+      {
+        frame: 400,
+        position: {
+          x: 200,
+          y: 300
+        }
+      }
+      ]
+    }
+  }
+
+  return Object.assign({}, state, {mode: 'editing', animations: state.animations.concat([animation])});
+}
+
+function startRecording (state) {
+  return Object.assign({}, state, {mode: 'recording'});
+}
+
 function changeMode (mode) {
   return state => {
     if (state.mode === 'recording' && mode === 'recording') {
-      const animation = {
-        start: 250,
-        end: 500,
-        actors: {
-          '0': [
-            {
-              frame: 250,
-              position: {
-                x: 150,
-                y: 150
-              }
-            },
-            {
-              frame: 350,
-              position: {
-                x: 200,
-                y: 300
-              }
-            }
-          ]
-        }
-      }
-      return Object.assign({}, state, {mode: 'editing', animations: state.animations.concat([animation])});
+      return finishRecording(state);
     }
 
-    return Object.assign({}, state, {mode});
+    return startRecording(state);
+  };
+}
+
+export function Actor ({DOM, props}, name) {
+  const actorDOM = DOM.select(name);
+  const initialState = Immutable({position: {x: 150, y: 150}});
+
+  const mousedown$ = actorDOM.events('mousedown');
+  const mousemove$ = actorDOM.events('mousemove');
+  const mouseup$ = actorDOM.events('mouseup');
+
+  const selected$ = Rx.Observable.merge(
+    mousedown$.map(_ => true),
+    mouseup$.map(_ => false)
+  );
+
+  const mouseMoveWhileSelected$ = mousemove$.pausable(selected$);
+
+  const model$ = mouseMoveWhileSelected$
+    .map(event => Immutable({position: {x: event.clientX, y: event.clientY}}))
+    .startWith(initialState);
+
+  return {
+    DOM: Rx.Observable.just(h('.actor ' + name, 'hey')),
+    model$
   };
 }
 
 export default function editor ({DOM}) {
-  const enterRecordMode$ = DOM
+  const changeMode$ = DOM
     .select('.record')
     .events('click')
     .map(_ => 'recording')
     .map(changeMode);
 
-  const action$ = enterRecordMode$;
+  const action$ = changeMode$;
 
   const initialState = Immutable({
     mode: 'editing',
     animations: []
   });
+
+  const actors$ = Rx.Observable.just([
+    Actor({DOM}, '0'),
+    Actor({DOM}, '1'),
+    Actor({DOM}, '2')
+  ]);
 
   const state$ = action$
     .startWith(initialState)
@@ -69,6 +109,7 @@ export default function editor ({DOM}) {
 
   return {
     DOM: Rx.Observable.just(editorView()),
-    state$
+    state$,
+    actors$
   };
 }
