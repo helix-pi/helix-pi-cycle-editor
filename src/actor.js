@@ -18,8 +18,8 @@ export default function Actor ({DOM, props}, name) {
   const initialState = Immutable({position: {x: 150, y: 150}, name});
 
   const mousedown$ = actorDOM.events('mousedown');
-  const mousemove$ = actorDOM.events('mousemove');
-  const mouseup$ = actorDOM.events('mouseup');
+  const mousemove$ = DOM.select('.app').events('mousemove');
+  const mouseup$ = DOM.select('.app').events('mouseup');
 
   const selected$ = Rx.Observable.merge(
     mousedown$.map(_ => true),
@@ -41,8 +41,16 @@ export default function Actor ({DOM, props}, name) {
     .startWith(initialState)
     .scan((state, action) => action(state));
 
+  function actorStyle (modelState) {
+    return {
+      position: 'absolute',
+      left: `${modelState.position.x}px`,
+      top: `${modelState.position.y}px`
+    };
+  }
+
   return {
-    DOM: Rx.Observable.just(h('.actor .actor-' + name, 'hey')),
+    DOM: model$.map(modelState => h('.actor .actor-' + name, {style: actorStyle(modelState)}, JSON.stringify(modelState))),
     model$
   };
 }

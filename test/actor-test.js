@@ -26,10 +26,12 @@ describe('Actor', () => {
     );
 
     const mockedResponse = mockDOMResponse({
-      '.actor-0': {
-        mousedown: mousedown$,
+      '.app': {
         mouseup: mouseup$,
         mousemove: mousemove$
+      },
+      '.actor-0': {
+        mousedown: mousedown$,
       }
     });
 

@@ -68,13 +68,12 @@ describe('the Helix Pi Editor', () => {
     );
 
     const mockedResponse = mockDOMResponse({
-      ':root': {
-        mousemove: mousemove$
-      },
-      '.actor-0': {
-        mousedown: mousedown$,
+      '.app': {
         mousemove: mousemove$,
         mouseup: mouseup$
+      },
+      '.actor-0': {
+        mousedown: mousedown$
       },
       '.record': {
         click: click$

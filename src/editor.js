@@ -9,12 +9,16 @@ const {div, button} = require('hyperscript-helpers')(h);
 
 import Actor from './actor';
 
-function editorView () {
-  return (
+function editorView (state$, actors$) {
+  const actorState$ = actors$.flatMapLatest((actors) => Rx.Observable.combineLatest(actors.map(actor => actor.DOM)));
+
+  return Rx.Observable.combineLatest(state$, actorState$, (state, actors) => (
     div('.editor', [
-      button('.record', 'Record')
+      button('.record', 'Record'),
+      div('', JSON.stringify(state)),
+      div('.actors', actors)
     ])
-  );
+  ));
 }
 
 function finishRecording (state) {
@@ -95,7 +99,7 @@ export default function editor ({DOM}) {
     .distinctUntilChanged(JSON.stringify);
 
   return {
-    DOM: Rx.Observable.just(editorView()),
+    DOM: editorView(state$, actors$),
     state$,
     actors$
   };
