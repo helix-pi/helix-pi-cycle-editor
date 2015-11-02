@@ -44,8 +44,14 @@ function editorView (state$, actors$) {
 
   return Rx.Observable.combineLatest(state$, actorState$, (state, actors) => (
     div('.editor', [
-      button('.record', state.mode === 'editing' ? 'Record' : 'Stop recording'),
+      div('.state', JSON.stringify(state, null, 2)),
+
+      button('.record', state.mode === 'recording' ? 'Recording' : 'Record'),
+
+      button('.play', state.mode === 'playing' ? 'Playing' : 'Play'),
+
       div('.actors', actors),
+
       svg('svg.canvas', svgStyle(), [
         svg('path.foo', {d: pathFromState(state)}, [])
       ])
@@ -59,6 +65,10 @@ function finishRecording (state) {
 
 function startRecording (state) {
   return Object.assign({}, state, {mode: 'recording', animations: state.animations.concat([{actors: {}}])});
+}
+
+function playRecording (state) {
+  return Object.assign({}, state, {mode: 'playing'});
 }
 
 function updateActor (existingActorInAnimation, actorModel) {
@@ -102,9 +112,17 @@ export default function editor ({DOM}) {
     .startWith(false)
     .scan((current, _) => !current);
 
-  const changeMode$ = recording$.map(recording => ({
+  const play$ = DOM
+    .select('.play')
+    .events('click')
+    .map(_ => 'playing');
+
+  const mode$ = recording$.merge(play$);
+
+  const changeMode$ = mode$.map(recording => ({
     true: startRecording,
-    false: finishRecording
+    false: finishRecording,
+    'playing': playRecording
   }[recording]));
 
   const actors$ = Rx.Observable.just([

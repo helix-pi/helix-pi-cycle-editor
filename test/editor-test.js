@@ -8,9 +8,7 @@ import {mockDOMResponse} from '@cycle/dom';
 
 import _ from 'lodash';
 
-const onNext = Rx.ReactiveTest.onNext,
-  onCompleted = Rx.ReactiveTest.onCompleted,
-  subscribe = Rx.ReactiveTest.subscribe;
+const onNext = Rx.ReactiveTest.onNext;
 
 import collectionAssert from './test-helper';
 
@@ -85,23 +83,38 @@ describe('the Helix Pi Editor', () => {
         .map(state => state.animations.map(ani => ani.actors));
     });
 
-    const expectedAnimation = {
-      start: 250,
-      end: 500,
-      actors: {
-        '0': [
-          { frame: 250, position: {x: 150, y: 150} },
-          { frame: 400, position: {x: 200, y: 300} }
-        ]
-      }
-    };
-
     collectionAssert.assertEqual([
       onNext(200, []),
       onNext(250, [{}]),
       onNext(300, [{'0': [{position: {x: 150, y: 150}}]}]),
       onNext(400, [{'0': [{position: {x: 150, y: 150}}, {position: {x: 200, y: 300}}]}]),
       onNext(500, [{'0': [{position: {x: 150, y: 150}}, {position: {x: 200, y: 300}}]}])
+    ], results.messages);
+
+    done();
+  });
+
+  it('plays back recorded', (done) => {
+    const scheduler = new Rx.TestScheduler();
+
+    const click$ = scheduler.createHotObservable(
+      onNext(250)
+    );
+
+    const mockedResponse = mockDOMResponse({
+      '.play': {
+        click: click$
+      }
+    });
+
+    const results = scheduler.startScheduler(() => {
+      return editor({DOM: mockedResponse}).state$
+        .map(state => state.mode);
+    });
+
+    collectionAssert.assertEqual([
+      onNext(200, 'editing'),
+      onNext(250, 'playing')
     ], results.messages);
 
     done();

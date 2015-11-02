@@ -6,6 +6,7 @@ html, body {
 }
 
 .app, .editor {
+  background: #F9F9F9;
   height: 100%;
   -moz-user-select: none;
   user-select: none;
@@ -14,4 +15,12 @@ html, body {
 path {
   stroke: purple;
   fill: none;
+}
+
+.state {
+  position: fixed;
+  opacity: 0.4;
+  top: 1.5em;
+  white-space: pre;
+  font-size: 1.5em;
 }

@@ -1,12 +1,14 @@
+/* globals describe, it */
+
 import Rx from 'rx';
 import Actor from '../src/actor';
 
 import {mockDOMResponse} from '@cycle/dom';
 import collectionAssert from './test-helper';
 
-const onNext = Rx.ReactiveTest.onNext,
-  onCompleted = Rx.ReactiveTest.onCompleted,
-  subscribe = Rx.ReactiveTest.subscribe;
+const onNext = Rx.ReactiveTest.onNext;
+const onCompleted = Rx.ReactiveTest.onCompleted;
+const subscribe = Rx.ReactiveTest.subscribe;
 
 describe('Actor', () => {
   it('can be dragged around', (done) => {
@@ -31,7 +33,7 @@ describe('Actor', () => {
         mousemove: mousemove$
       },
       '.actor-0': {
-        mousedown: mousedown$,
+        mousedown: mousedown$
       }
     });
 
