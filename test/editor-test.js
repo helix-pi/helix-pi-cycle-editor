@@ -86,9 +86,9 @@ describe('the Helix Pi Editor', () => {
     collectionAssert.assertEqual([
       onNext(200, []),
       onNext(250, [{}]),
-      onNext(300, [{'0': [{position: {x: 150, y: 150}}]}]),
-      onNext(400, [{'0': [{position: {x: 150, y: 150}}, {position: {x: 200, y: 300}}]}]),
-      onNext(500, [{'0': [{position: {x: 150, y: 150}}, {position: {x: 200, y: 300}}]}])
+      onNext(300, [{'0': [{position: {x: 150, y: 150, time: 0}}]}]),
+      onNext(400, [{'0': [{position: {x: 150, y: 150, time: 0}}, {position: {x: 200, y: 300, time: 10}}]}]),
+      onNext(500, [{'0': [{position: {x: 150, y: 150, time: 0}}, {position: {x: 200, y: 300, time: 10}}]}])
     ], results.messages);
 
     done();
