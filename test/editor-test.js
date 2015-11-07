@@ -79,16 +79,25 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse}).state$
+      return editor({DOM: mockedResponse}, scheduler).state$
         .map(state => state.animations.map(ani => ani.actors));
     });
+
+    function actor (animations) {
+      return animations[0]['0'];
+    }
 
     collectionAssert.assertEqual([
       onNext(200, []),
       onNext(250, [{}]),
-      onNext(300, [{'0': [{position: {x: 150, y: 150, time: 0}}]}]),
-      onNext(400, [{'0': [{position: {x: 150, y: 150, time: 0}}, {position: {x: 200, y: 300, time: 10}}]}]),
-      onNext(500, [{'0': [{position: {x: 150, y: 150, time: 0}}, {position: {x: 200, y: 300, time: 10}}]}])
+      onNext(300, animations => _.isEqual(actor(animations)[0].position, {x: 150, y: 150})),
+      onNext(400, (animations) => {
+        const actorAnimations = actor(animations);
+        return _.isEqual(actorAnimations[0].position, {x: 150, y: 150}) &&
+          _.isEqual(actorAnimations[1].position, {x: 200, y: 300}) &&
+          actorAnimations[0].time <= actorAnimations[1].time;
+      }),
+      onNext(500, () => true)
     ], results.messages);
 
     done();

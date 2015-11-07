@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 function moveActor (event) {
   return function updateActorPosition (actor) {
-    return Immutable(Object.assign(actor.asMutable(), {position: {x: event.clientX, y: event.clientY}}))
+    return Immutable(Object.assign(actor.asMutable(), {position: {x: event.clientX, y: event.clientY}}));
   }
 }
 

@@ -71,18 +71,19 @@ function playRecording (state) {
   return Object.assign({}, state, {mode: 'playing'});
 }
 
-function updateActor (existingActorInAnimation, actorModel) {
+function updateActor (existingActorInAnimation, actorModel, time) {
   return existingActorInAnimation.concat([{
-    position: actorModel.position
+    position: actorModel.position,
+    time: time.appTime
   }]);
 }
 
-function updateAnimation (animation, actorModel) {
+function updateAnimation (animation, actorModel, time) {
   const getActor = actorModel => {
     return animation.actors && animation.actors[actorModel.name] || [];
   };
 
-  const updatedActor = updateActor(getActor(actorModel), actorModel);
+  const updatedActor = updateActor(getActor(actorModel), actorModel, time);
 
   return Object.assign({}, animation, {
     actors: Object.assign({}, animation.actors, {[actorModel.name]: updatedActor})
@@ -90,12 +91,12 @@ function updateAnimation (animation, actorModel) {
 }
 
 function animationWaypoint (actorModel) {
-  return function updateAnimationState (state) {
+  return function updateAnimationState (state, time) {
     if (state.animations.length === 0 || state.mode !== 'recording') {
       return state;
     }
 
-    const updatedAnimation = updateAnimation(_.last(state.animations), actorModel);
+    const updatedAnimation = updateAnimation(_.last(state.animations), actorModel, time);
 
     const animations = state.animations
       .slice(0, state.animations.length - 1)
@@ -105,7 +106,7 @@ function animationWaypoint (actorModel) {
   };
 }
 
-export default function editor ({DOM}) {
+export default function editor ({DOM}, testScheduler=Rx.Scheduler.immediate) {
   const recording$ = DOM
     .select('.record')
     .events('click')
@@ -143,14 +144,28 @@ export default function editor ({DOM}) {
     animations: []
   });
 
-  const state$ = action$
+  const appStartTime$ = Rx.Observable.just(0, testScheduler)
+    .timestamp()
+    .first()
+    .pluck('timestamp');
+
+  const time$ = Rx.Observable.interval(1000 / 60, testScheduler)
+    .startWith(0)
+    .timestamp()
+    .withLatestFrom(appStartTime$, ({timestamp}, appStartTime) => ({
+      appTime: timestamp - appStartTime,
+      absolute: timestamp
+    }));
+
+  const state$ = action$.withLatestFrom(time$)
     .startWith(initialState)
-    .scan((state, action) => action(state))
+    .scan((state, [action, time]) => action(state, time))
     .distinctUntilChanged(JSON.stringify);
 
   return {
     DOM: editorView(state$, actors$),
     state$,
-    actors$
+    actors$,
+    time$
   };
 }
