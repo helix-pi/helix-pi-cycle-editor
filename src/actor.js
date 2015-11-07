@@ -1,23 +1,45 @@
 import Rx from 'rx';
-import {h} from '@cycle/dom';
+import {svg} from '@cycle/dom';
 import Immutable from 'seamless-immutable';
 import _ from 'lodash';
 
 function moveActor (event) {
   return function updateActorPosition (actor) {
     return Immutable(Object.assign(actor.asMutable(), {position: {x: event.clientX, y: event.clientY}}));
-  }
+  };
 }
 
 function justUpdateModelForTheSakeOfUpdating () {
   return function noop (actor) { return actor };
 }
 
+function styles (model) {
+  return {
+    position: 'absolute',
+    x: `${model.position.x}px`,
+    y: `${model.position.y}px`,
+    width: '20px',
+    height: '80px',
+    'xlink:href': model.imagePath,
+    'class': `.actor .actor-${model.name}`
+  };
+}
+
+function view (model) {
+  const style = styles(model);
+
+  return (
+    svg(`image`, style)
+  );
+}
+
 export default function Actor ({DOM, props}, name) {
   const actorDOM = DOM.select(`.actor-${name}`);
-  const initialState = Immutable({position: {x: 150, y: 150}, name});
+  const initialState = {position: {x: 150, y: 150}, name};
 
-  const mousedown$ = actorDOM.events('mousedown');
+  const mousedown$ = DOM.select('svg').events('mousedown')
+    .do(ev => ev.preventDefault())
+    .filter(ev => _.includes(ev.target.classList, `.actor-${name}`));
   const mousemove$ = DOM.select('.app').events('mousemove');
   const mouseup$ = DOM.select('.app').events('mouseup');
 
@@ -38,19 +60,11 @@ export default function Actor ({DOM, props}, name) {
   }
 
   const model$ = action$
-    .startWith(initialState)
+    .startWith(Immutable(Object.assign({}, initialState, props)))
     .scan((state, action) => action(state));
 
-  function actorStyle (modelState) {
-    return {
-      position: 'absolute',
-      left: `${modelState.position.x}px`,
-      top: `${modelState.position.y}px`
-    };
-  }
-
   return {
-    DOM: model$.map(modelState => h('.actor .actor-' + name, {style: actorStyle(modelState)}, JSON.stringify(modelState))),
+    DOM: model$.map(view),
     model$
   };
 }

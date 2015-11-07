@@ -53,7 +53,7 @@ describe('the Helix Pi Editor', () => {
     );
 
     const mousedown$ = scheduler.createHotObservable(
-      onNext(300)
+      onNext(300, {preventDefault: () => true, target: {classList: '.actor-0'}})
     );
 
     const mouseup$ = scheduler.createHotObservable(
@@ -70,7 +70,7 @@ describe('the Helix Pi Editor', () => {
         mousemove: mousemove$,
         mouseup: mouseup$
       },
-      '.actor-0': {
+      'svg': {
         mousedown: mousedown$
       },
       '.record': {
@@ -90,10 +90,10 @@ describe('the Helix Pi Editor', () => {
     collectionAssert.assertEqual([
       onNext(200, []),
       onNext(250, [{}]),
-      onNext(300, animations => _.isEqual(actor(animations)[0].position, {x: 150, y: 150})),
+      onNext(300, animations => _.isEqual(actor(animations)[0].position, {x: 150, y: 250})),
       onNext(400, (animations) => {
         const actorAnimations = actor(animations);
-        return _.isEqual(actorAnimations[0].position, {x: 150, y: 150}) &&
+        return _.isEqual(actorAnimations[0].position, {x: 150, y: 250}) &&
           _.isEqual(actorAnimations[1].position, {x: 200, y: 300}) &&
           actorAnimations[0].time <= actorAnimations[1].time;
       }),

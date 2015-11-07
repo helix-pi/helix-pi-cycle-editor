@@ -40,7 +40,10 @@ ${_.flatten(restOfPositions.map(p => ['L', p.x, p.y])).join(' ')}
 }
 
 function editorView (state$, actors$) {
-  const actorState$ = actors$.flatMapLatest((actors) => Rx.Observable.combineLatest(actors.map(actor => actor.DOM)));
+  const actorState$ = actors$
+    .flatMapLatest(actors =>
+      Rx.Observable.combineLatest(actors.map(actor => actor.DOM))
+    );
 
   return Rx.Observable.combineLatest(state$, actorState$, (state, actors) => (
     div('.editor', [
@@ -50,9 +53,8 @@ function editorView (state$, actors$) {
 
       button('.play', state.mode === 'playing' ? 'Playing' : 'Play'),
 
-      div('.actors', actors),
-
       svg('svg.canvas', svgStyle(), [
+        ...actors,
         svg('path.foo', {d: pathFromState(state)}, [])
       ])
     ])
@@ -127,9 +129,9 @@ export default function editor ({DOM}, testScheduler=Rx.Scheduler.immediate) {
   }[recording]));
 
   const actors$ = Rx.Observable.just([
-    Actor({DOM}, '0'),
-    Actor({DOM}, '1'),
-    Actor({DOM}, '2')
+    Actor({DOM, props: {imagePath: '/paddle.png', name: '0', position: {x: 150, y: 250}}}, '0'),
+    Actor({DOM, props: {imagePath: '/ball.png', name: '1', position: {x: 500, y: 250}}},'1'),
+    Actor({DOM, props: {imagePath: '/paddle.png', name: '2', position: {x: 850, y: 250}}},'2')
   ]);
 
   const animationWaypoint$ = actors$.flatMap(

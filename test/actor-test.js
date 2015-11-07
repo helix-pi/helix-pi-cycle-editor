@@ -15,7 +15,7 @@ describe('Actor', () => {
     const scheduler = new Rx.TestScheduler();
 
     const mousedown$ = scheduler.createHotObservable(
-      onNext(300)
+      onNext(300, {preventDefault: () => true, target: {classList: '.actor-0'}})
     );
 
     const mouseup$ = scheduler.createHotObservable(
@@ -32,18 +32,23 @@ describe('Actor', () => {
         mouseup: mouseup$,
         mousemove: mousemove$
       },
-      '.actor-0': {
+      'svg': {
         mousedown: mousedown$
       }
     });
 
+    const props = {
+      position: {x: 200, y: 200},
+      name: '0'
+    };
+
     const results = scheduler.startScheduler(() => {
-      return Actor({DOM: mockedResponse}, '0').model$.pluck('position');
+      return Actor({DOM: mockedResponse, props}, '0').model$.pluck('position');
     });
 
     collectionAssert.assertEqual([
-      onNext(200, {x: 150, y: 150}),
-      onNext(300, {x: 150, y: 150}),
+      onNext(200, {x: 200, y: 200}),
+      onNext(300, {x: 200, y: 200}),
       onNext(350, {x: 500, y: 200})
     ], results.messages);
 

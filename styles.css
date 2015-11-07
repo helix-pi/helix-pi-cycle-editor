@@ -6,10 +6,11 @@ html, body {
 }
 
 .app, .editor {
-  background: #F9F9F9;
+  background: #121212;
   height: 100%;
   -moz-user-select: none;
   user-select: none;
+  color: white;
 }
 
 path {
@@ -22,5 +23,5 @@ path {
   opacity: 0.4;
   top: 1.5em;
   white-space: pre;
-  font-size: 1.5em;
+  font-size: 0.8em;
 }
