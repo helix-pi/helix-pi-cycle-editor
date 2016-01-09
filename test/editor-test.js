@@ -32,7 +32,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse}).state$;
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler)}).state$;
     });
 
     collectionAssert.assertEqual([
@@ -79,7 +79,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse}, scheduler).state$
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler)}).state$
         .map(state => state.animations.map(ani => ani.actors));
     });
 
@@ -117,7 +117,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse}).state$
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler)}).state$
         .map(state => state.mode);
     });
 

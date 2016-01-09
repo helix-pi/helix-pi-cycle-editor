@@ -108,7 +108,7 @@ function animationWaypoint (actorModel) {
   };
 }
 
-export default function editor ({DOM}, testScheduler=Rx.Scheduler.immediate) {
+export default function editor ({DOM, animation$}) {
   const recording$ = DOM
     .select('.record')
     .events('click')
@@ -130,8 +130,8 @@ export default function editor ({DOM}, testScheduler=Rx.Scheduler.immediate) {
 
   const actors$ = Rx.Observable.just([
     Actor({DOM, props: {imagePath: '/paddle.png', name: '0', position: {x: 150, y: 250}}}, '0'),
-    Actor({DOM, props: {imagePath: '/ball.png', name: '1', position: {x: 500, y: 250}}},'1'),
-    Actor({DOM, props: {imagePath: '/paddle.png', name: '2', position: {x: 850, y: 250}}},'2')
+    Actor({DOM, props: {imagePath: '/ball.png', name: '1', position: {x: 500, y: 250}}}, '1'),
+    Actor({DOM, props: {imagePath: '/paddle.png', name: '2', position: {x: 850, y: 250}}}, '2')
   ]);
 
   const animationWaypoint$ = actors$.flatMap(
@@ -146,12 +146,12 @@ export default function editor ({DOM}, testScheduler=Rx.Scheduler.immediate) {
     animations: []
   });
 
-  const appStartTime$ = Rx.Observable.just(0, testScheduler)
+  const appStartTime$ = animation$
+    .take(1)
     .timestamp()
-    .first()
     .pluck('timestamp');
 
-  const time$ = Rx.Observable.interval(1000 / 60, testScheduler)
+  const time$ = animation$
     .startWith(0)
     .timestamp()
     .withLatestFrom(appStartTime$, ({timestamp}, appStartTime) => ({
