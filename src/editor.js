@@ -70,7 +70,7 @@ function startRecording (state) {
 }
 
 function playRecording (state) {
-  return Object.assign({}, state, {mode: 'playing'});
+  return Object.assign({}, state, {mode: state.mode === 'playing' ? 'editing' : 'playing'});
 }
 
 function updateActor (existingActorInAnimation, actorModel, time) {

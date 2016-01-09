@@ -107,7 +107,8 @@ describe('the Helix Pi Editor', () => {
     const scheduler = new Rx.TestScheduler();
 
     const click$ = scheduler.createHotObservable(
-      onNext(250)
+      onNext(250),
+      onNext(500)
     );
 
     const mockedResponse = mockDOMResponse({
@@ -123,7 +124,8 @@ describe('the Helix Pi Editor', () => {
 
     collectionAssert.assertEqual([
       onNext(200, 'editing'),
-      onNext(250, 'playing')
+      onNext(250, 'playing'),
+      onNext(500, 'editing')
     ], results.messages);
 
     done();
