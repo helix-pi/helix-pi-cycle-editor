@@ -108,7 +108,17 @@ function animationWaypoint (actorModel) {
   };
 }
 
-export default function editor ({DOM, animation$}) {
+function loadState (loadedState) {
+  return function parseLoadedState (state) {
+    if (!loadedState) {
+      return state;
+    }
+
+    return JSON.parse(loadedState);
+  }
+}
+
+export default function editor ({DOM, animation$, storage}) {
   const recording$ = DOM
     .select('.record')
     .events('click')
@@ -139,7 +149,13 @@ export default function editor ({DOM, animation$}) {
     (_, actorModel) => animationWaypoint(actorModel)
   );
 
-  const action$ = changeMode$.merge(animationWaypoint$);
+  const loadState$ = storage.local.getItem('state').map(loadState).take(1);
+
+  const action$ = Rx.Observable.merge(
+    loadState$,
+    changeMode$,
+    animationWaypoint$
+  );
 
   const initialState = Immutable({
     mode: 'editing',
@@ -152,12 +168,21 @@ export default function editor ({DOM, animation$}) {
     .pluck('timestamp');
 
   const time$ = animation$
-    .startWith(0)
     .timestamp()
     .withLatestFrom(appStartTime$, ({timestamp}, appStartTime) => ({
       appTime: timestamp - appStartTime,
       absolute: timestamp
-    }));
+    }))
+    .startWith({
+      appTime: 0,
+      absolute: 0
+    });
+
+  function log (...things) {
+    console.log(...things);
+
+    return things[1];
+  }
 
   const state$ = action$.withLatestFrom(time$)
     .startWith(initialState)
@@ -168,6 +193,7 @@ export default function editor ({DOM, animation$}) {
     DOM: editorView(state$, actors$),
     state$,
     actors$,
-    time$
+    time$,
+    storage: state$.skip(1).debounce(300).map(state => ({key: 'state', value: JSON.stringify(state)}))
   };
 }

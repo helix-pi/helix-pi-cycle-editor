@@ -27,6 +27,7 @@
   "dependencies": {
     "@cycle/core": "^5.0.1",
     "@cycle/dom": "^7.1.1",
+    "@cycle/storage": "^2.0.3",
     "babelify": "^7.1.0",
     "cycle-animation-driver": "^0.1.1",
     "hyperscript-helpers": "^2.0.1",

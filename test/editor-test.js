@@ -12,6 +12,12 @@ const onNext = Rx.ReactiveTest.onNext;
 
 import collectionAssert from './test-helper';
 
+const fakeStorageDriver = {
+  local: {
+    getItem: () => Rx.Observable.empty()
+  }
+};
+
 describe('the Helix Pi Editor', () => {
   it('exists', () => {
     assert.equal(!!editor, true);
@@ -32,7 +38,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler)}).state$;
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$;
     });
 
     collectionAssert.assertEqual([
@@ -79,7 +85,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler)}).state$
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$
         .map(state => state.animations.map(ani => ani.actors));
     });
 
@@ -118,7 +124,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler)}).state$
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$
         .map(state => state.mode);
     });
 

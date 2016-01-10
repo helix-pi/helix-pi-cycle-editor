@@ -1,6 +1,7 @@
 import Cycle from '@cycle/core';
 import {makeDOMDriver} from '@cycle/dom';
 import {makeAnimationDriver} from 'cycle-animation-driver';
+import storageDriver from '@cycle/storage';
 
 import main from './src/editor';
 
@@ -10,5 +11,6 @@ if (module.hot) {
 
 Cycle.run(main, {
   DOM: makeDOMDriver('.app'),
-  animation$: makeAnimationDriver()
+  animation$: makeAnimationDriver(),
+  storage: storageDriver
 });
