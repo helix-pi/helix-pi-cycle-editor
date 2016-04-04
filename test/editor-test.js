@@ -136,4 +136,103 @@ describe('the Helix Pi Editor', () => {
 
     done();
   });
+
+  it('allows deleting animations', () => {
+    const scheduler = new Rx.TestScheduler();
+
+    const click$ = scheduler.createHotObservable(
+      onNext(250),
+      onNext(300),
+      onNext(320),
+      onNext(340),
+      onNext(340),
+      onNext(340)
+    );
+
+    const ruleDestroy$ = scheduler.createHotObservable(
+      onNext(350, {target: {dataset: {ruleId: 1}}})
+    );
+
+    const mockedResponse = mockDOMSource({
+      '.record': {
+        click: click$
+      },
+      '.rule .destroy': {
+        click: ruleDestroy$
+      }
+    });
+
+    const results = scheduler.startScheduler(() => {
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$
+        .map(state => state.animations.length)
+        .distinctUntilChanged();
+    });
+
+
+    collectionAssert.assertEqual([
+      onNext(200, 0),
+      onNext(250, 1),
+      onNext(320, 2),
+      onNext(340, 3),
+      onNext(350, 2)
+    ], results.messages);
+  });
+
+  it('deletes the right rule', () => {
+    const scheduler = new Rx.TestScheduler();
+
+    const click$ = scheduler.createHotObservable(
+      onNext(250),
+      onNext(460),
+      onNext(480),
+      onNext(500)
+    );
+
+    const ruleDestroy$ = scheduler.createHotObservable(
+      onNext(520, {target: {dataset: {ruleId: 0}}})
+    );
+
+    const mousedown$ = scheduler.createHotObservable(
+      onNext(300, {preventDefault: () => true, target: {classList: '.actor-0'}})
+    );
+
+    const mouseup$ = scheduler.createHotObservable(
+      onNext(450)
+    );
+
+    const mousemove$ = scheduler.createHotObservable(
+      onNext(250, {clientX: 0, clientY: 0}),
+      onNext(400, {clientX: 200, clientY: 300})
+    );
+
+    const mockedResponse = mockDOMSource({
+      '.app': {
+        mousemove: mousemove$,
+        mouseup: mouseup$
+      },
+      'svg': {
+        mousedown: mousedown$
+      },
+      '.record': {
+        click: click$
+      },
+      '.rule .destroy': {
+        click: ruleDestroy$
+      }
+    });
+
+    const results = scheduler.startScheduler(() => {
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$
+        .map(state => state.animations[0] && Object.keys(state.animations[0].actors).length)
+        .distinctUntilChanged();
+    });
+
+
+    collectionAssert.assertEqual([
+      onNext(200, undefined),
+      onNext(250, 0),
+      onNext(300, 1),
+      onNext(520, 0)
+    ], results.messages);
+  });
 });

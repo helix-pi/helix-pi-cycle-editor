@@ -33,7 +33,7 @@
     "hyperscript-helpers": "^2.0.1",
     "lodash": "^3.10.1",
     "rx": "^4.0.6",
-    "seamless-immutable": "^4.0.2"
+    "seamless-immutable": "^5.1.1"
   },
   "devDependencies": {
     "babel-cli": "^6.0.14",

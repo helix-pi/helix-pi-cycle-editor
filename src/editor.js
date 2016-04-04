@@ -1,9 +1,6 @@
 import Rx from 'rx';
 import {h, svg} from '@cycle/dom';
-import Immutable from 'seamless-immutable';
 import _ from 'lodash';
-
-Rx.config.longStackSupport = true;
 
 import hyperScriptHelpers from 'hyperscript-helpers';
 
@@ -45,6 +42,13 @@ function paths (state) {
   );
 }
 
+function displayRule (animation, index) {
+  return div('.rule', [
+    animation.name,
+    button('.destroy', {dataset: {ruleId: index}}, 'x')
+  ]);
+};
+
 function editorView (state$, actors$) {
   const actorState$ = actors$
     .flatMapLatest(actors =>
@@ -53,9 +57,13 @@ function editorView (state$, actors$) {
 
   return Rx.Observable.combineLatest(state$, actorState$, (state, actors) => (
     div('.editor', [
-      svg('svg.canvas', svgStyle(), [
-        ...actors,
-        ...paths(state).map(displayPath).map(path => svg('path', {d: path}, []))
+      div('.main', [
+        div('.rules', state.animations.map(displayRule)),
+
+        svg('svg.canvas', svgStyle(), [
+          ...actors,
+          ...paths(state).map(displayPath).map(path => svg('path', {d: path}, []))
+        ]),
       ]),
 
       div('.controls', [
@@ -74,7 +82,7 @@ function finishRecording (state) {
 }
 
 function startRecording (state) {
-  return Object.assign({}, state, {mode: 'recording', animations: state.animations.concat([{actors: {}}])});
+  return Object.assign({}, state, {mode: 'recording', animations: state.animations.concat([{name: 'New animation', actors: {}}])});
 }
 
 function playRecording (state) {
@@ -126,6 +134,21 @@ function loadState (loadedState) {
   };
 }
 
+function destroyRule (event) {
+  return function (state) {
+    const newAnimations = state.animations.asMutable && state.animations.asMutable() || state.animations.slice();
+
+    newAnimations.splice(event.target.dataset.ruleId, 1);
+
+    return Object.assign(
+      state,
+      {
+        animations: newAnimations
+      }
+    );
+  };
+}
+
 export default function editor ({DOM, animation$, storage}) {
   const recording$ = DOM
     .select('.record')
@@ -159,16 +182,22 @@ export default function editor ({DOM, animation$, storage}) {
 
   const loadState$ = storage.local.getItem('state').map(loadState).take(1);
 
+  const deleteRule$ = DOM
+    .select('.rule .destroy')
+    .events('click')
+    .map(destroyRule);
+
   const action$ = Rx.Observable.merge(
     loadState$,
     changeMode$,
-    animationWaypoint$
+    animationWaypoint$,
+    deleteRule$
   );
 
-  const initialState = Immutable({
+  const initialState = {
     mode: 'editing',
     animations: []
-  });
+  };
 
   const appStartTime$ = animation$
     .take(1)

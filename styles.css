@@ -70,3 +70,25 @@ path {
 
   flex-direction: column;
 }
+
+.main {
+  display: flex;
+  height: 100%;
+}
+
+.rules {
+  background: #CCC;
+  color: black;
+  width: 10%;
+}
+
+.rule {
+  margin: 5px;
+
+  border: 1px solid lightgray;
+  border-radius: 2px;
+
+  padding: 5px 3px;
+
+  background: #bbb
+}

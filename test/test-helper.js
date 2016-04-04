@@ -25,11 +25,11 @@ function prettyMessage (message) {
   }
 
   if (message.value.kind === 'E') {
-    return `  @${message.time}: -- Error! --: ${message.value.error}`;
+    return `  @${message.time}: -- Error! --: ${message.value.error.message}`;
   }
 
   if (message.value.predicate) {
-    return `  @${message.time}: PREDICATE ${message.value.predicate.toString()}`;
+    return `  @${message.time}: PREDICATE ${new String(message.value.predicate)}`;
   }
 
   return '  IMPLEMENT KIND ' + message.value.kind;
