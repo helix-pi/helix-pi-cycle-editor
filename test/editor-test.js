@@ -4,7 +4,7 @@ import assert from 'assert';
 import editor from '../src/editor';
 
 import Rx from 'rx';
-import {mockDOMResponse} from '@cycle/dom';
+import {mockDOMSource} from '@cycle/dom';
 
 import _ from 'lodash';
 
@@ -31,7 +31,7 @@ describe('the Helix Pi Editor', () => {
       onNext(500)
     );
 
-    const mockedResponse = mockDOMResponse({
+    const mockedResponse = mockDOMSource({
       '.record': {
         click: click$
       }
@@ -71,7 +71,7 @@ describe('the Helix Pi Editor', () => {
       onNext(400, {clientX: 200, clientY: 300})
     );
 
-    const mockedResponse = mockDOMResponse({
+    const mockedResponse = mockDOMSource({
       '.app': {
         mousemove: mousemove$,
         mouseup: mouseup$
@@ -117,7 +117,7 @@ describe('the Helix Pi Editor', () => {
       onNext(500)
     );
 
-    const mockedResponse = mockDOMResponse({
+    const mockedResponse = mockDOMSource({
       '.play': {
         click: click$
       }

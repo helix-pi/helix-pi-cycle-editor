@@ -3,7 +3,7 @@
 import Rx from 'rx';
 import Actor from '../src/actor';
 
-import {mockDOMResponse} from '@cycle/dom';
+import {mockDOMSource} from '@cycle/dom';
 import collectionAssert from './test-helper';
 
 const onNext = Rx.ReactiveTest.onNext;
@@ -27,7 +27,7 @@ describe('Actor', () => {
       onNext(350, {clientX: 500, clientY: 200})
     );
 
-    const mockedResponse = mockDOMResponse({
+    const mockedResponse = mockDOMSource({
       '.app': {
         mouseup: mouseup$,
         mousemove: mousemove$
