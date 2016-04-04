@@ -18,25 +18,31 @@ function svgStyle () {
   };
 }
 
-function pathFromState (state) {
-  const lastAnimation = _.last(state.animations);
-
-  if (lastAnimation && lastAnimation.actors && lastAnimation.actors['0'] && lastAnimation.actors['0'].length > 0) {
-    const positions = lastAnimation.actors['0'].map(waypoint => waypoint.position);
-
-    const firstPosition = positions[0];
-    const restOfPositions = positions.slice(1);
-
+function displayPath (positions) {
+  if (positions === []) {
     return `
-M ${firstPosition.x} ${firstPosition.y}
-${_.flatten(restOfPositions.map(p => ['L', p.x, p.y])).join(' ')}
-    `;
+      M 0 0,
+      Z
+        `;
   }
 
+  const firstPosition = positions[0];
+  const restOfPositions = positions.slice(1);
+
   return `
-    M 0 0,
-    Z
+    M ${firstPosition.x} ${firstPosition.y}
+  ${_.flatten(restOfPositions.map(p => ['L', p.x, p.y])).join(' ')}
   `;
+}
+
+function paths (state) {
+  return _.flatten(
+    state.animations.map(
+      animation => _
+        .values(animation.actors)
+        .map(actorAnimation => actorAnimation.map(waypoint => waypoint.position))
+    )
+  );
 }
 
 function editorView (state$, actors$) {
@@ -47,15 +53,17 @@ function editorView (state$, actors$) {
 
   return Rx.Observable.combineLatest(state$, actorState$, (state, actors) => (
     div('.editor', [
-      div('.state', JSON.stringify(state, null, 2)),
-
-      button('.record', state.mode === 'recording' ? 'Recording' : 'Record'),
-
-      button('.play', state.mode === 'playing' ? 'Playing' : 'Play'),
-
       svg('svg.canvas', svgStyle(), [
         ...actors,
-        svg('path.foo', {d: pathFromState(state)}, [])
+        ...paths(state).map(displayPath).map(path => svg('path', {d: path}, []))
+      ]),
+
+      div('.controls', [
+        div('.buttons', [
+          button('.record', state.mode === 'recording' ? 'Recording' : 'Record'),
+
+          button('.play', state.mode === 'playing' ? 'Playing' : 'Play')
+        ])
       ])
     ])
   ));
@@ -115,7 +123,7 @@ function loadState (loadedState) {
     }
 
     return JSON.parse(loadedState);
-  }
+  };
 }
 
 export default function editor ({DOM, animation$, storage}) {
