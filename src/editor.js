@@ -76,6 +76,7 @@ function editorView (state$, actors$) {
 
         svg('svg.canvas', svgStyle(), [
           ...actors,
+
           ...paths(state).map(displayPath).map(path => svg('path', {d: path}, []))
         ])
       ]),
@@ -92,25 +93,38 @@ function editorView (state$, actors$) {
 }
 
 function finishRecording (state) {
-  return Object.assign({}, state, {mode: 'editing'});
+  return {
+    ...state,
+
+    mode: 'editing'
+  };
 }
 
 function addAnimation (state) {
   return function (state) {
     return {
       ...state,
+
       selectedAnimation: state.animations.length,
       animations: [...state.animations, Animation()]
-    }
+    };
   };
 }
 
 function startRecording (state) {
-  return Object.assign({}, state, {mode: 'recording'});
+  return {
+    ...state,
+
+    mode: 'recording'
+  };
 }
 
 function playRecording (state) {
-  return Object.assign({}, state, {mode: state.mode === 'playing' ? 'editing' : 'playing'});
+  return {
+    ...state,
+
+    mode: state.mode === 'playing' ? 'editing' : 'playing'
+  };
 }
 
 function updateActor (existingActorInAnimation, actorModel, time) {
@@ -127,9 +141,15 @@ function updateAnimation (animation, actorModel, time) {
 
   const updatedActor = updateActor(getActor(actorModel), actorModel, time);
 
-  return Object.assign({}, animation, {
-    actors: Object.assign({}, animation.actors, {[actorModel.name]: updatedActor})
-  });
+  return {
+    ...animation,
+
+    actors: {
+      ...animation.actors,
+
+      [actorModel.name]: updatedActor
+    }
+  };
 }
 
 function animationWaypoint (actorModel) {
@@ -144,7 +164,11 @@ function animationWaypoint (actorModel) {
 
     animations[state.selectedAnimation] = updatedAnimation;
 
-    return Object.assign({}, state, { animations });
+    return {
+      ...state,
+
+      animations
+    };
   };
 }
 
@@ -164,6 +188,7 @@ function selectAnimation (event) {
   return function (state) {
     return {
       ...state,
+
       selectedAnimation
     };
   };
@@ -183,13 +208,12 @@ function destroyAnimation (event) {
       newSelectedAnimation = state.selectedAnimation - 1;
     }
 
-    return Object.assign(
-      state,
-      {
-        selectedAnimation: newSelectedAnimation,
-        animations: newAnimations
-      }
-    );
+    return {
+      ...state,
+
+      selectedAnimation: newSelectedAnimation,
+      animations: newAnimations
+    };
   };
 }
 
@@ -205,6 +229,7 @@ function updateStartedPlaying (time) {
   return function (state) {
     return {
       ...state,
+
       startedPlayingAt: time
     };
   };

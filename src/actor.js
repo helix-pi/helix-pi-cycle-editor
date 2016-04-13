@@ -10,7 +10,7 @@ function moveActor (event) {
 }
 
 function justUpdateModelForTheSakeOfUpdating () {
-  return function noop (actor) { return actor };
+  return function noop (actor) { return actor; };
 }
 
 function styles (model) {
@@ -34,7 +34,6 @@ function view (model) {
 }
 
 export default function Actor ({DOM, props}, name) {
-  const actorDOM = DOM.select(`.actor-${name}`);
   const initialState = {position: {x: 150, y: 150}, name};
 
   const mousedown$ = DOM.select('svg').events('mousedown')

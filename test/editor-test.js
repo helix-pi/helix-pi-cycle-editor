@@ -165,7 +165,7 @@ describe('the Helix Pi Editor', () => {
     const results = scheduler.startScheduler(() => {
       return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
         .map(state => state.animations[0] && state.animations[0].actors)
-        .distinctUntilChanged(JSON.stringify)
+        .distinctUntilChanged(JSON.stringify);
     });
 
     collectionAssert.assertEqual([
@@ -181,7 +181,6 @@ describe('the Helix Pi Editor', () => {
 
     done();
   });
-
 
   it('plays back recorded', (done) => {
     const scheduler = new Rx.TestScheduler();
