@@ -84,9 +84,9 @@ function editorView (state$, actors$) {
 
       div('.controls', [
         div('.buttons', [
-          button('.record', state.mode === 'recording' ? 'Recording' : 'Record'),
+          button('.record'),
 
-          button('.play', state.mode === 'playing' ? 'Playing' : 'Play')
+          button('.play')
         ])
       ])
     ])
