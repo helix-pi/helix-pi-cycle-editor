@@ -90,6 +90,10 @@ describe('the Helix Pi Editor', () => {
     });
 
     function actor (animations) {
+      if (!animations['0']) {
+        throw new Error('Actor "0" not found');
+      }
+
       return animations['0'];
     }
 
@@ -142,8 +146,7 @@ describe('the Helix Pi Editor', () => {
     const scheduler = new Rx.TestScheduler();
 
     const click$ = scheduler.createHotObservable(
-      onNext(250),
-      onNext(300)
+      onNext(250)
     );
 
     const animationDestroy$ = scheduler.createHotObservable(
@@ -151,7 +154,7 @@ describe('the Helix Pi Editor', () => {
     );
 
     const mockedResponse = mockDOMSource({
-      '.record': {
+      '.add-animation': {
         click: click$
       },
       '.animation .destroy': {

@@ -68,7 +68,11 @@ function editorView (state$, actors$) {
   return Rx.Observable.combineLatest(state$, actorState$, (state, actors) => (
     div('.editor', [
       div('.main', [
-        div('.animations', state.animations.map((animation, index) => displayAnimation(animation, index, state.selectedAnimation === index))),
+        div('.animations', [
+          state.animations.map((animation, index) => displayAnimation(animation, index, state.selectedAnimation === index)),
+
+          button('.add-animation', '+')
+        ]),
 
         svg('svg.canvas', svgStyle(), [
           ...actors,
@@ -89,6 +93,15 @@ function editorView (state$, actors$) {
 
 function finishRecording (state) {
   return Object.assign({}, state, {mode: 'editing'});
+}
+
+function addAnimation (state) {
+  return function (state) {
+    return {
+      ...state,
+      animations: [...state.animations, Animation()]
+    }
+  };
 }
 
 function startRecording (state) {
@@ -224,6 +237,11 @@ export default function editor ({DOM, animation$, storage}) {
     .events('click')
     .map(_ => 'playing');
 
+  const addAnimation$ = DOM
+    .select('.add-animation')
+    .events('click')
+    .map(addAnimation);
+
   const mode$ = recording$.merge(play$);
 
   const changeMode$ = mode$.map(recording => ({
@@ -268,7 +286,8 @@ export default function editor ({DOM, animation$, storage}) {
     deleteAnimation$,
     tweenWhenPlaying$,
     startedPlaying$,
-    selectAnimation$
+    selectAnimation$,
+    addAnimation$
   );
 
   const initialState = {

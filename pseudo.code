@@ -1,0 +1,3 @@
+Currently, to create a new animation you must click record. Change this so that you instead click a button below the other animations.
+
+Currently, clicking record creates a new animation. Change this so that clicking record re-records over the current animation.

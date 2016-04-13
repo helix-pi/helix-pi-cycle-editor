@@ -56,10 +56,17 @@ var collectionAssert = {
     }
 
     for(var i = 0, len = expected.length; i < len; i++) {
-      if (expected[i].value && expected[i].value.predicate) {
-        isOk = expected[i].value.predicate(actual[i].value.value);
-      } else {
-        isOk = comparer(expected[i], actual[i]);
+      try {
+        if (expected[i].value && expected[i].value.predicate) {
+          isOk = expected[i].value.predicate(actual[i].value.value);
+        } else {
+          isOk = comparer(expected[i], actual[i]);
+        }
+      } catch (e) {
+        isOk = false;
+
+        actual[i].value.kind = 'E';
+        actual[i].value.error = e;
       }
 
       if (!isOk) {
