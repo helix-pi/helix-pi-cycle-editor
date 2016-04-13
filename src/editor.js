@@ -7,6 +7,7 @@ import hyperScriptHelpers from 'hyperscript-helpers';
 const {div, button} = hyperScriptHelpers(h);
 
 import Actor from './actor';
+import tween from './tween';
 
 function Animation () {
   return {name: 'New animation', actors: {}};
@@ -111,10 +112,11 @@ function addAnimation (state) {
   };
 }
 
-function startRecording (state) {
+function startRecording (state, time) {
   return {
     ...state,
 
+    startedRecordingAt: time,
     mode: 'recording'
   };
 }
@@ -130,7 +132,7 @@ function playRecording (state) {
 function updateActor (existingActorInAnimation, actorModel, time) {
   return existingActorInAnimation.concat([{
     position: actorModel.position,
-    time: time.appTime
+    time
   }]);
 }
 
@@ -158,7 +160,7 @@ function animationWaypoint (actorModel) {
       return state;
     }
 
-    const updatedAnimation = updateAnimation(selectedAnimation(state), actorModel, time);
+    const updatedAnimation = updateAnimation(selectedAnimation(state), actorModel, time.appTime - state.startedRecordingAt.appTime);
 
     const animations = state.animations.slice();
 
@@ -320,7 +322,8 @@ export default function editor ({DOM, animation$, storage}) {
     mode: 'editing',
     animations: [Animation()],
     selectedAnimation: 0,
-    startedPlayingAt: null
+    startedPlayingAt: null,
+    startedRecordingAt: null
   };
 
   function log (...things) {
