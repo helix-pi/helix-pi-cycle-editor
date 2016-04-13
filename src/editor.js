@@ -99,13 +99,14 @@ function addAnimation (state) {
   return function (state) {
     return {
       ...state,
+      selectedAnimation: state.animations.length,
       animations: [...state.animations, Animation()]
     }
   };
 }
 
 function startRecording (state) {
-  return Object.assign({}, state, {selectedAnimation: state.animations.length, mode: 'recording', animations: state.animations.concat([Animation()])});
+  return Object.assign({}, state, {mode: 'recording'});
 }
 
 function playRecording (state) {

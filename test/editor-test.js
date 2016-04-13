@@ -86,7 +86,7 @@ describe('the Helix Pi Editor', () => {
 
     const results = scheduler.startScheduler(() => {
       return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
-        .map(state => state.animations[1] && state.animations[1].actors);
+        .map(state => state.animations[0] && state.animations[0].actors);
     });
 
     function actor (animations) {
@@ -98,7 +98,7 @@ describe('the Helix Pi Editor', () => {
     }
 
     collectionAssert.assertEqual([
-      onNext(200, undefined),
+      onNext(200, {}),
       onNext(250, {}),
       onNext(300, animations => _.isEqual(actor(animations)[0].position, {x: 150, y: 250})),
       onNext(400, (animations) => {
@@ -181,8 +181,10 @@ describe('the Helix Pi Editor', () => {
 
     const click$ = scheduler.createHotObservable(
       onNext(250),
-      onNext(460),
-      onNext(480),
+      onNext(460)
+    );
+
+    const addAnimation$ = scheduler.createHotObservable(
       onNext(500)
     );
 
@@ -216,18 +218,20 @@ describe('the Helix Pi Editor', () => {
       },
       '.animation .destroy': {
         click: animationDestroy$
+      },
+      '.add-animation': {
+        click: addAnimation$
       }
     });
 
     const results = scheduler.startScheduler(() => {
       return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
-        .map(state => state.animations[1] && Object.keys(state.animations[1].actors).length)
+        .map(state => state.animations[0] && Object.keys(state.animations[0].actors).length)
         .distinctUntilChanged();
     });
 
     collectionAssert.assertEqual([
-      onNext(200, undefined),
-      onNext(250, 0),
+      onNext(200, 0),
       onNext(300, 1),
       onNext(520, 0)
     ], results.messages);
@@ -240,17 +244,16 @@ describe('the Helix Pi Editor', () => {
       onNext(250, {target: {dataset: {animationId: 0}}})
     );
 
-    const clickRecord$ = scheduler.createHotObservable(
-      onNext(230),
-      onNext(240)
+    const addAnimation$ = scheduler.createHotObservable(
+      onNext(230)
     );
 
     const mockedResponse = mockDOMSource({
       '.animation': {
         click: selectAnimation$
       },
-      '.record': {
-        click: clickRecord$
+      '.add-animation': {
+        click: addAnimation$
       }
     });
 
@@ -263,7 +266,7 @@ describe('the Helix Pi Editor', () => {
     collectionAssert.assertEqual([
       onNext(200, 0),
       onNext(230, 1),
-      onNext(250, 0),
+      onNext(250, 0)
     ], results.messages);
   });
 });
