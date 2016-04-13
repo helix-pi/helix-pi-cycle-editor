@@ -150,16 +150,16 @@ describe('the Helix Pi Editor', () => {
       onNext(340)
     );
 
-    const ruleDestroy$ = scheduler.createHotObservable(
-      onNext(350, {target: {dataset: {ruleId: 1}}})
+    const animationDestroy$ = scheduler.createHotObservable(
+      onNext(350, {target: {dataset: {animationId: 1}}})
     );
 
     const mockedResponse = mockDOMSource({
       '.record': {
         click: click$
       },
-      '.rule .destroy': {
-        click: ruleDestroy$
+      '.animation .destroy': {
+        click: animationDestroy$
       }
     });
 
@@ -179,7 +179,7 @@ describe('the Helix Pi Editor', () => {
     ], results.messages);
   });
 
-  it('deletes the right rule', () => {
+  it('deletes the right animation', () => {
     const scheduler = new Rx.TestScheduler();
 
     const click$ = scheduler.createHotObservable(
@@ -189,8 +189,8 @@ describe('the Helix Pi Editor', () => {
       onNext(500)
     );
 
-    const ruleDestroy$ = scheduler.createHotObservable(
-      onNext(520, {target: {dataset: {ruleId: 0}}})
+    const animationDestroy$ = scheduler.createHotObservable(
+      onNext(520, {target: {dataset: {animationId: 0}}})
     );
 
     const mousedown$ = scheduler.createHotObservable(
@@ -217,8 +217,8 @@ describe('the Helix Pi Editor', () => {
       '.record': {
         click: click$
       },
-      '.rule .destroy': {
-        click: ruleDestroy$
+      '.animation .destroy': {
+        click: animationDestroy$
       }
     });
 

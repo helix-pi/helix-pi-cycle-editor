@@ -48,10 +48,10 @@ function paths (state) {
   return actors.map(actorAnimation => actorAnimation.map(waypoint => waypoint.position));
 }
 
-function displayRule (animation, index, selected) {
-  return div(`.rule ${selected ? '.selected' : ''}`, [
+function displayAnimation (animation, index, selected) {
+  return div(`.animation ${selected ? '.selected' : ''}`, [
     animation.name,
-    button('.destroy', {dataset: {ruleId: index}}, 'x')
+    button('.destroy', {dataset: {animationId: index}}, 'x')
   ]);
 }
 
@@ -64,7 +64,7 @@ function editorView (state$, actors$) {
   return Rx.Observable.combineLatest(state$, actorState$, (state, actors) => (
     div('.editor', [
       div('.main', [
-        div('.rules', state.animations.map((animation, index) => displayRule(animation, index, state.selectedAnimation === index))),
+        div('.animations', state.animations.map((animation, index) => displayAnimation(animation, index, state.selectedAnimation === index))),
 
         svg('svg.canvas', svgStyle(), [
           ...actors,
@@ -140,11 +140,11 @@ function loadState (loadedState) {
   };
 }
 
-function destroyRule (event) {
+function destroyAnimation (event) {
   return function (state) {
     const newAnimations = state.animations.asMutable && state.animations.asMutable() || state.animations.slice();
 
-    const indexToRemove = parseInt(event.target.dataset.ruleId, 10);
+    const indexToRemove = parseInt(event.target.dataset.animationId, 10);
 
     newAnimations.splice(indexToRemove, 1);
 
@@ -234,10 +234,10 @@ export default function editor ({DOM, animation$, storage}) {
 
   const loadState$ = storage.local.getItem('state').map(loadState).take(1);
 
-  const deleteRule$ = DOM
-    .select('.rule .destroy')
+  const deleteAnimation$ = DOM
+    .select('.animation .destroy')
     .events('click')
-    .map(destroyRule);
+    .map(destroyAnimation);
 
   const tweenWhenPlaying$ = time$.map(tweenAllTheThings);
 
@@ -245,7 +245,7 @@ export default function editor ({DOM, animation$, storage}) {
     loadState$,
     changeMode$,
     animationWaypoint$,
-    deleteRule$,
+    deleteAnimation$,
     tweenWhenPlaying$,
     startedPlaying$
   );

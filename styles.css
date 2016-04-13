@@ -76,13 +76,13 @@ path {
   height: 100%;
 }
 
-.rules {
+.animations {
   background: #CCC;
   color: black;
   width: 10%;
 }
 
-.rule {
+.animation {
   margin: 5px;
 
   border: 1px solid lightgray;
@@ -93,6 +93,6 @@ path {
   background: #bbb
 }
 
-.rule.selected {
+.animation.selected {
   background: #888;
 }
