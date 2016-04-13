@@ -86,16 +86,16 @@ describe('the Helix Pi Editor', () => {
 
     const results = scheduler.startScheduler(() => {
       return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
-        .map(state => state.animations.map(ani => ani.actors));
+        .map(state => state.animations[1] && state.animations[1].actors);
     });
 
     function actor (animations) {
-      return animations[0]['0'];
+      return animations['0'];
     }
 
     collectionAssert.assertEqual([
-      onNext(200, []),
-      onNext(250, [{}]),
+      onNext(200, undefined),
+      onNext(250, {}),
       onNext(300, animations => _.isEqual(actor(animations)[0].position, {x: 150, y: 250})),
       onNext(400, (animations) => {
         const actorAnimations = actor(animations);
@@ -143,11 +143,7 @@ describe('the Helix Pi Editor', () => {
 
     const click$ = scheduler.createHotObservable(
       onNext(250),
-      onNext(300),
-      onNext(320),
-      onNext(340),
-      onNext(340),
-      onNext(340)
+      onNext(300)
     );
 
     const animationDestroy$ = scheduler.createHotObservable(
@@ -171,11 +167,9 @@ describe('the Helix Pi Editor', () => {
 
 
     collectionAssert.assertEqual([
-      onNext(200, 0),
-      onNext(250, 1),
-      onNext(320, 2),
-      onNext(340, 3),
-      onNext(350, 2)
+      onNext(200, 1),
+      onNext(250, 2),
+      onNext(350, 1)
     ], results.messages);
   });
 
@@ -224,10 +218,9 @@ describe('the Helix Pi Editor', () => {
 
     const results = scheduler.startScheduler(() => {
       return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
-        .map(state => state.animations[0] && Object.keys(state.animations[0].actors).length)
+        .map(state => state.animations[1] && Object.keys(state.animations[1].actors).length)
         .distinctUntilChanged();
     });
-
 
     collectionAssert.assertEqual([
       onNext(200, undefined),
@@ -245,8 +238,6 @@ describe('the Helix Pi Editor', () => {
     );
 
     const clickRecord$ = scheduler.createHotObservable(
-      onNext(210),
-      onNext(220),
       onNext(230),
       onNext(240)
     );

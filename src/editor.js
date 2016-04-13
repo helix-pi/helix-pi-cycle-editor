@@ -8,6 +8,10 @@ const {div, button} = hyperScriptHelpers(h);
 
 import Actor from './actor';
 
+function Animation () {
+  return {name: 'New animation', actors: {}};
+}
+
 function svgStyle () {
   return {
     width: '100%',
@@ -88,7 +92,7 @@ function finishRecording (state) {
 }
 
 function startRecording (state) {
-  return Object.assign({}, state, {selectedAnimation: state.animations.length, mode: 'recording', animations: state.animations.concat([{name: 'New animation', actors: {}}])});
+  return Object.assign({}, state, {selectedAnimation: state.animations.length, mode: 'recording', animations: state.animations.concat([Animation()])});
 }
 
 function playRecording (state) {
@@ -269,7 +273,7 @@ export default function editor ({DOM, animation$, storage}) {
 
   const initialState = {
     mode: 'editing',
-    animations: [],
+    animations: [Animation()],
     selectedAnimation: 0,
     startedPlayingAt: null
   };
