@@ -39,13 +39,3 @@ function tweenWaypoints (previousWaypoint, nextWaypoint, time) {
     y: previousWaypoint.position.y + distanceBetweenWaypoints.y * tweenRatio
   };
 }
-
-// Given an array of waypoints with time, and a time to tween to
-// Iterate through the waypoints
-  // Given a waypoint
-  // If it matches the exact time, return it
-  // Otherwise
-  // If it is before the time, set it as the previous
-  // If it is after the time, set it as the after
-  // If we have found both a previous and after
-    // Return a tweened waypoint between them
