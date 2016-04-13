@@ -18,6 +18,14 @@ const fakeStorageDriver = {
   }
 };
 
+function actor (animations) {
+  if (!animations['0']) {
+    throw new Error('Actor "0" not found');
+  }
+
+  return animations['0'];
+}
+
 describe('the Helix Pi Editor', () => {
   it('exists', () => {
     assert.equal(!!editor, true);
@@ -89,14 +97,6 @@ describe('the Helix Pi Editor', () => {
         .map(state => state.animations[0] && state.animations[0].actors);
     });
 
-    function actor (animations) {
-      if (!animations['0']) {
-        throw new Error('Actor "0" not found');
-      }
-
-      return animations['0'];
-    }
-
     collectionAssert.assertEqual([
       onNext(200, {}),
       onNext(250, {}),
@@ -112,6 +112,76 @@ describe('the Helix Pi Editor', () => {
 
     done();
   });
+
+
+  it('records the movements of actors to the selected animation', (done) => {
+    const scheduler = new Rx.TestScheduler();
+
+    const addAnimation$ = scheduler.createHotObservable(
+      onNext(230)
+    );
+
+    const selectFirstAnimation$ = scheduler.createHotObservable(
+      onNext(240, {target: {dataset: {animationId: 0}}})
+    );
+
+    const record$ = scheduler.createHotObservable(
+      onNext(250),
+      onNext(500)
+    );
+
+    const mousedown$ = scheduler.createHotObservable(
+      onNext(300, {preventDefault: () => true, target: {classList: '.actor-0'}})
+    );
+
+    const mouseup$ = scheduler.createHotObservable(
+      onNext(450)
+    );
+
+    const mousemove$ = scheduler.createHotObservable(
+      onNext(250, {clientX: 0, clientY: 0}),
+      onNext(400, {clientX: 200, clientY: 300})
+    );
+
+    const mockedResponse = mockDOMSource({
+      '.app': {
+        mousemove: mousemove$,
+        mouseup: mouseup$
+      },
+      'svg': {
+        mousedown: mousedown$
+      },
+      '.record': {
+        click: record$
+      },
+      '.add-animation': {
+        click: addAnimation$
+      },
+      '.animation': {
+        click: selectFirstAnimation$
+      }
+    });
+
+    const results = scheduler.startScheduler(() => {
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
+        .map(state => state.animations[0] && state.animations[0].actors)
+        .distinctUntilChanged(JSON.stringify)
+    });
+
+    collectionAssert.assertEqual([
+      onNext(200, {}),
+      onNext(300, animations => _.isEqual(actor(animations)[0].position, {x: 150, y: 250})),
+      onNext(400, (animations) => {
+        const actorAnimations = actor(animations);
+        return _.isEqual(actorAnimations[0].position, {x: 150, y: 250}) &&
+          _.isEqual(actorAnimations[1].position, {x: 200, y: 300}) &&
+          actorAnimations[0].time <= actorAnimations[1].time;
+      })
+    ], results.messages);
+
+    done();
+  });
+
 
   it('plays back recorded', (done) => {
     const scheduler = new Rx.TestScheduler();

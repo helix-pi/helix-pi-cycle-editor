@@ -138,11 +138,11 @@ function animationWaypoint (actorModel) {
       return state;
     }
 
-    const updatedAnimation = updateAnimation(_.last(state.animations), actorModel, time);
+    const updatedAnimation = updateAnimation(selectedAnimation(state), actorModel, time);
 
-    const animations = state.animations
-      .slice(0, state.animations.length - 1)
-      .concat([updatedAnimation]);
+    const animations = state.animations.slice();
+
+    animations[state.selectedAnimation] = updatedAnimation;
 
     return Object.assign({}, state, { animations });
   };
