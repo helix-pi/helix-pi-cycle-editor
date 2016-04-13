@@ -32,22 +32,28 @@ function displayPath (positions) {
   `;
 }
 
-function paths (state) {
-  return _.flatten(
-    state.animations.map(
-      animation => _
-        .values(animation.actors)
-        .map(actorAnimation => actorAnimation.map(waypoint => waypoint.position))
-    )
-  );
+function selectedAnimation (state) {
+  return state.animations[state.selectedAnimation];
 }
 
-function displayRule (animation, index) {
-  return div('.rule', [
+function paths (state) {
+  const animation = selectedAnimation(state);
+
+  if (!animation) {
+    return [];
+  }
+
+  const actors = _.values(animation.actors);
+
+  return actors.map(actorAnimation => actorAnimation.map(waypoint => waypoint.position));
+}
+
+function displayRule (animation, index, selected) {
+  return div(`.rule ${selected ? '.selected' : ''}`, [
     animation.name,
     button('.destroy', {dataset: {ruleId: index}}, 'x')
   ]);
-};
+}
 
 function editorView (state$, actors$) {
   const actorState$ = actors$
@@ -58,12 +64,12 @@ function editorView (state$, actors$) {
   return Rx.Observable.combineLatest(state$, actorState$, (state, actors) => (
     div('.editor', [
       div('.main', [
-        div('.rules', state.animations.map(displayRule)),
+        div('.rules', state.animations.map((animation, index) => displayRule(animation, index, state.selectedAnimation === index))),
 
         svg('svg.canvas', svgStyle(), [
           ...actors,
           ...paths(state).map(displayPath).map(path => svg('path', {d: path}, []))
-        ]),
+        ])
       ]),
 
       div('.controls', [
@@ -82,7 +88,7 @@ function finishRecording (state) {
 }
 
 function startRecording (state) {
-  return Object.assign({}, state, {mode: 'recording', animations: state.animations.concat([{name: 'New animation', actors: {}}])});
+  return Object.assign({}, state, {selectedAnimation: state.animations.length, mode: 'recording', animations: state.animations.concat([{name: 'New animation', actors: {}}])});
 }
 
 function playRecording (state) {
@@ -138,18 +144,60 @@ function destroyRule (event) {
   return function (state) {
     const newAnimations = state.animations.asMutable && state.animations.asMutable() || state.animations.slice();
 
-    newAnimations.splice(event.target.dataset.ruleId, 1);
+    const indexToRemove = parseInt(event.target.dataset.ruleId, 10);
+
+    newAnimations.splice(indexToRemove, 1);
+
+    let newSelectedAnimation = state.selectedAnimation;
+
+    if (indexToRemove <= state.selectedAnimation) {
+      newSelectedAnimation = state.selectedAnimation - 1;
+    }
 
     return Object.assign(
       state,
       {
+        selectedAnimation: newSelectedAnimation,
         animations: newAnimations
       }
     );
   };
 }
 
+function tweenAllTheThings (time) {
+  return function (state) {
+    if (state.mode === 'playing') {
+    }
+    return state;
+  };
+}
+
+function updateStartedPlaying (time) {
+  return function (state) {
+    return {
+      ...state,
+      startedPlayingAt: time
+    };
+  }
+}
+
 export default function editor ({DOM, animation$, storage}) {
+  const appStartTime$ = animation$
+    .take(1)
+    .timestamp()
+    .pluck('timestamp');
+
+  const time$ = animation$
+    .timestamp()
+    .withLatestFrom(appStartTime$, ({timestamp}, appStartTime) => ({
+      appTime: timestamp - appStartTime,
+      absolute: timestamp
+    }))
+    .startWith({
+      appTime: 0,
+      absolute: 0
+    });
+
   const recording$ = DOM
     .select('.record')
     .events('click')
@@ -169,6 +217,10 @@ export default function editor ({DOM, animation$, storage}) {
     'playing': playRecording
   }[recording]));
 
+  const startedPlaying$ = time$
+    .sample(mode$.filter(mode => mode === 'playing'))
+    .map(updateStartedPlaying);
+
   const actors$ = Rx.Observable.just([
     Actor({DOM, props: {imagePath: '/paddle.png', name: '0', position: {x: 150, y: 250}}}, '0'),
     Actor({DOM, props: {imagePath: '/ball.png', name: '1', position: {x: 500, y: 250}}}, '1'),
@@ -187,33 +239,23 @@ export default function editor ({DOM, animation$, storage}) {
     .events('click')
     .map(destroyRule);
 
+  const tweenWhenPlaying$ = time$.map(tweenAllTheThings);
+
   const action$ = Rx.Observable.merge(
     loadState$,
     changeMode$,
     animationWaypoint$,
-    deleteRule$
+    deleteRule$,
+    tweenWhenPlaying$,
+    startedPlaying$
   );
 
   const initialState = {
     mode: 'editing',
-    animations: []
+    animations: [],
+    selectedAnimation: 0,
+    startedPlayingAt: null
   };
-
-  const appStartTime$ = animation$
-    .take(1)
-    .timestamp()
-    .pluck('timestamp');
-
-  const time$ = animation$
-    .timestamp()
-    .withLatestFrom(appStartTime$, ({timestamp}, appStartTime) => ({
-      appTime: timestamp - appStartTime,
-      absolute: timestamp
-    }))
-    .startWith({
-      appTime: 0,
-      absolute: 0
-    });
 
   function log (...things) {
     console.log(...things);
@@ -224,7 +266,7 @@ export default function editor ({DOM, animation$, storage}) {
   const state$ = action$.withLatestFrom(time$)
     .startWith(initialState)
     .scan((state, [action, time]) => action(state, time))
-    .distinctUntilChanged(JSON.stringify);
+    .distinctUntilChanged(JSON.stringify)
 
   return {
     DOM: editorView(state$, actors$),

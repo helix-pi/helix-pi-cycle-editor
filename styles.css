@@ -92,3 +92,7 @@ path {
 
   background: #bbb
 }
+
+.rule.selected {
+  background: #888;
+}

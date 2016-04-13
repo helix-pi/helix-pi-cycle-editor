@@ -125,7 +125,8 @@ describe('the Helix Pi Editor', () => {
 
     const results = scheduler.startScheduler(() => {
       return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$
-        .map(state => state.mode);
+        .map(state => state.mode)
+        .distinctUntilChanged();
     });
 
     collectionAssert.assertEqual([

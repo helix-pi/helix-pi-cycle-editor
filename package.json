@@ -28,6 +28,7 @@
     "@cycle/core": "^6.0.3",
     "@cycle/dom": "^9.2.2",
     "@cycle/storage": "^2.0.3",
+    "babel-plugin-transform-object-rest-spread": "^6.6.5",
     "babelify": "^7.1.0",
     "cycle-animation-driver": "^0.1.1",
     "hyperscript-helpers": "^2.0.1",
