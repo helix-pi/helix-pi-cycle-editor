@@ -49,7 +49,7 @@ function paths (state) {
 }
 
 function displayAnimation (animation, index, selected) {
-  return div(`.animation ${selected ? '.selected' : ''}`, [
+  return div(`.animation ${selected ? '.selected' : ''}`, {dataset: {animationId: index}}, [
     animation.name,
     button('.destroy', {dataset: {animationId: index}}, 'x')
   ]);
@@ -140,6 +140,17 @@ function loadState (loadedState) {
   };
 }
 
+function selectAnimation (event) {
+  const selectedAnimation = parseInt(event.target.dataset.animationId, 10);
+
+  return function (state) {
+    return {
+      ...state,
+      selectedAnimation
+    };
+  };
+}
+
 function destroyAnimation (event) {
   return function (state) {
     const newAnimations = state.animations.asMutable && state.animations.asMutable() || state.animations.slice();
@@ -178,7 +189,7 @@ function updateStartedPlaying (time) {
       ...state,
       startedPlayingAt: time
     };
-  }
+  };
 }
 
 export default function editor ({DOM, animation$, storage}) {
@@ -239,6 +250,11 @@ export default function editor ({DOM, animation$, storage}) {
     .events('click')
     .map(destroyAnimation);
 
+  const selectAnimation$ = DOM
+    .select('.animation')
+    .events('click')
+    .map(selectAnimation);
+
   const tweenWhenPlaying$ = time$.map(tweenAllTheThings);
 
   const action$ = Rx.Observable.merge(
@@ -247,7 +263,8 @@ export default function editor ({DOM, animation$, storage}) {
     animationWaypoint$,
     deleteAnimation$,
     tweenWhenPlaying$,
-    startedPlaying$
+    startedPlaying$,
+    selectAnimation$
   );
 
   const initialState = {
@@ -266,7 +283,7 @@ export default function editor ({DOM, animation$, storage}) {
   const state$ = action$.withLatestFrom(time$)
     .startWith(initialState)
     .scan((state, [action, time]) => action(state, time))
-    .distinctUntilChanged(JSON.stringify)
+    .distinctUntilChanged(JSON.stringify);
 
   return {
     DOM: editorView(state$, actors$),

@@ -38,7 +38,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$;
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$;
     });
 
     collectionAssert.assertEqual([
@@ -85,7 +85,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
         .map(state => state.animations.map(ani => ani.actors));
     });
 
@@ -124,7 +124,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
         .map(state => state.mode)
         .distinctUntilChanged();
     });
@@ -164,7 +164,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
         .map(state => state.animations.length)
         .distinctUntilChanged();
     });
@@ -223,7 +223,7 @@ describe('the Helix Pi Editor', () => {
     });
 
     const results = scheduler.startScheduler(() => {
-      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver, storage: fakeStorageDriver}).state$
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
         .map(state => state.animations[0] && Object.keys(state.animations[0].actors).length)
         .distinctUntilChanged();
     });
@@ -234,6 +234,42 @@ describe('the Helix Pi Editor', () => {
       onNext(250, 0),
       onNext(300, 1),
       onNext(520, 0)
+    ], results.messages);
+  });
+
+  it('allows selecting animations by clicking on them', () => {
+    const scheduler = new Rx.TestScheduler();
+
+    const selectAnimation$ = scheduler.createHotObservable(
+      onNext(250, {target: {dataset: {animationId: 0}}})
+    );
+
+    const clickRecord$ = scheduler.createHotObservable(
+      onNext(210),
+      onNext(220),
+      onNext(230),
+      onNext(240)
+    );
+
+    const mockedResponse = mockDOMSource({
+      '.animation': {
+        click: selectAnimation$
+      },
+      '.record': {
+        click: clickRecord$
+      }
+    });
+
+    const results = scheduler.startScheduler(() => {
+      return editor({DOM: mockedResponse, animation$: Rx.Observable.just({}, scheduler), storage: fakeStorageDriver}).state$
+        .pluck('selectedAnimation')
+        .distinctUntilChanged();
+    });
+
+    collectionAssert.assertEqual([
+      onNext(200, 0),
+      onNext(230, 1),
+      onNext(250, 0),
     ], results.messages);
   });
 });
