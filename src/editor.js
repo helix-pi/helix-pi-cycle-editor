@@ -1,4 +1,4 @@
-import Rx from 'rx';
+import {Observable} from 'rx';
 import {h, svg} from '@cycle/dom';
 import _ from 'lodash';
 
@@ -63,10 +63,10 @@ function displayAnimation (animation, index, selected) {
 function editorView (state$, actors$) {
   const actorState$ = actors$
     .flatMapLatest(actors =>
-      Rx.Observable.combineLatest(actors.map(actor => actor.DOM))
+      Observable.combineLatest(actors.map(actor => actor.DOM))
     );
 
-  return Rx.Observable.combineLatest(state$, actorState$, (state, actors) => (
+  return Observable.combineLatest(state$, actorState$, (state, actors) => (
     div('.editor', [
       div('.main', [
         div('.animations', [
@@ -282,14 +282,14 @@ export default function editor ({DOM, animation$, storage}) {
     .sample(mode$.filter(mode => mode === 'playing'))
     .map(updateStartedPlaying);
 
-  const actors$ = Rx.Observable.just([
-    Actor({DOM, props: {imagePath: '/paddle.png', name: '0', position: {x: 150, y: 250}}}, '0'),
-    Actor({DOM, props: {imagePath: '/ball.png', name: '1', position: {x: 500, y: 250}}}, '1'),
-    Actor({DOM, props: {imagePath: '/paddle.png', name: '2', position: {x: 850, y: 250}}}, '2')
+  const actors$ = Observable.just([
+    Actor({DOM, props: Observable.just({imagePath: '/paddle.png', name: '0', position: {x: 150, y: 250}})}, '0'),
+    Actor({DOM, props: Observable.just({imagePath: '/ball.png', name: '1', position: {x: 500, y: 250}})}, '1'),
+    Actor({DOM, props: Observable.just({imagePath: '/paddle.png', name: '2', position: {x: 850, y: 250}})}, '2')
   ]);
 
   const animationWaypoint$ = actors$.flatMap(
-    actors => Rx.Observable.merge(actors.map(actor => actor.model$)),
+    actors => Observable.merge(actors.map(actor => actor.model$)),
     (_, actorModel) => animationWaypoint(actorModel)
   );
 
@@ -307,7 +307,7 @@ export default function editor ({DOM, animation$, storage}) {
 
   const tweenWhenPlaying$ = time$.map(tweenAllTheThings);
 
-  const action$ = Rx.Observable.merge(
+  const action$ = Observable.merge(
     loadState$,
     changeMode$,
     animationWaypoint$,

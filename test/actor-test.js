@@ -7,8 +7,6 @@ import {mockDOMSource} from '@cycle/dom';
 import collectionAssert from './test-helper';
 
 const onNext = Rx.ReactiveTest.onNext;
-const onCompleted = Rx.ReactiveTest.onCompleted;
-const subscribe = Rx.ReactiveTest.subscribe;
 
 describe('Actor', () => {
   it('can be dragged around', (done) => {
@@ -37,21 +35,42 @@ describe('Actor', () => {
       }
     });
 
-    const props = {
+    const props = Rx.Observable.just({
       position: {x: 200, y: 200},
       name: '0'
-    };
+    });
 
     const results = scheduler.startScheduler(() => {
       return Actor({DOM: mockedResponse, props}, '0').model$.pluck('position');
     });
 
     collectionAssert.assertEqual([
+      onNext(200, {x: 150, y: 150}),
       onNext(200, {x: 200, y: 200}),
       onNext(300, {x: 200, y: 200}),
       onNext(350, {x: 500, y: 200})
     ], results.messages);
 
     done();
+  });
+
+  it('takes positions as props and emits updates accordingly', () => {
+    const scheduler = new Rx.TestScheduler();
+
+    const mockedResponse = mockDOMSource({
+    });
+
+    const props = scheduler.createHotObservable(
+      onNext(250, {position: {x: 500, y: 500}})
+    );
+
+    const results = scheduler.startScheduler(() => {
+      return Actor({DOM: mockedResponse, props}, '0').model$.pluck('position');
+    });
+
+    collectionAssert.assertEqual([
+      onNext(200, {x: 150, y: 150}),
+      onNext(250, {x: 500, y: 500})
+    ], results.messages);
   });
 });

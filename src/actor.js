@@ -33,6 +33,10 @@ function view (model) {
   );
 }
 
+function updateState (props) {
+  return state => state.merge(props);
+}
+
 export default function Actor ({DOM, props}, name) {
   const initialState = {position: {x: 150, y: 150}, name};
 
@@ -49,7 +53,8 @@ export default function Actor ({DOM, props}, name) {
 
   const action$ = Rx.Observable.merge(
     whileSelected$(selected$, mousemove$).map(moveActor),
-    mousedown$.map(justUpdateModelForTheSakeOfUpdating)
+    mousedown$.map(justUpdateModelForTheSakeOfUpdating),
+    props.map(updateState)
   );
 
   function whileSelected$ (selected$, stream$) {
@@ -59,7 +64,7 @@ export default function Actor ({DOM, props}, name) {
   }
 
   const model$ = action$
-    .startWith(Immutable(Object.assign({}, initialState, props)))
+    .startWith(Immutable(initialState))
     .scan((state, action) => action(state));
 
   return {
