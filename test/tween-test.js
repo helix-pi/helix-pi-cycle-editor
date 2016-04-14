@@ -38,4 +38,24 @@ describe('tween', () => {
     assert.deepEqual(tween(positions, 5), {x: 10, y: 10});
     assert.deepEqual(tween(positions, 10), {x: 20, y: 20});
   });
+
+  it('returns the first position when given a time prior to any position', () => {
+    const positions = [
+      position({x: 0, y: 0, time: 0}),
+
+      position({x: 20, y: 20, time: 10})
+    ];
+
+    assert.deepEqual(tween(positions, -1), {x: 0, y: 0});
+  });
+
+  it('returns the last position when given a time after any position', () => {
+    const positions = [
+      position({x: 0, y: 0, time: 0}),
+
+      position({x: 20, y: 20, time: 10})
+    ];
+
+    assert.deepEqual(tween(positions, 11), {x: 20, y: 20});
+  });
 });

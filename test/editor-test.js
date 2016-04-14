@@ -338,4 +338,69 @@ describe('the Helix Pi Editor', () => {
       onNext(250, 0)
     ], results.messages);
   });
+
+  it('plays stuff', () => {
+    const scheduler = new Rx.TestScheduler();
+
+    const addAnimation$ = scheduler.createHotObservable(
+      onNext(230)
+    );
+
+    const selectFirstAnimation$ = scheduler.createHotObservable(
+      onNext(240, {target: {dataset: {animationId: 0}}})
+    );
+
+    const record$ = scheduler.createHotObservable(
+      onNext(250),
+      onNext(500)
+    );
+
+    const mousedown$ = scheduler.createHotObservable(
+      onNext(300, {preventDefault: () => true, target: {classList: '.actor-0'}})
+    );
+
+    const mouseup$ = scheduler.createHotObservable(
+      onNext(450)
+    );
+
+    const mousemove$ = scheduler.createHotObservable(
+      onNext(250, {clientX: 0, clientY: 0}),
+      onNext(400, {clientX: 200, clientY: 300})
+    );
+
+    const clickPlay$ = scheduler.createHotObservable(
+      onNext(510)
+    );
+
+    const mockedResponse = mockDOMSource({
+      '.app': {
+        mousemove: mousemove$,
+        mouseup: mouseup$
+      },
+      'svg': {
+        mousedown: mousedown$
+      },
+      '.record': {
+        click: record$
+      },
+      '.add-animation': {
+        click: addAnimation$
+      },
+      '.animation': {
+        click: selectFirstAnimation$
+      },
+      '.play': {
+        click: clickPlay$
+      }
+    });
+
+    const animation$ = scheduler.createHotObservable(
+      onNext(420, 0),
+      onNext(520, 100)
+    );
+
+    const results = scheduler.startScheduler(() => {
+      return editor({DOM: mockedResponse, animation$, storage: fakeStorageDriver}).state$
+    });
+  });
 });

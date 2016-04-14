@@ -1,4 +1,4 @@
-import {Observable} from 'rx';
+import {Observable, Subject} from 'rx';
 import {h, svg} from '@cycle/dom';
 import _ from 'lodash';
 
@@ -219,9 +219,20 @@ function destroyAnimation (event) {
   };
 }
 
-function tweenAllTheThings (time) {
+function tweenAllTheThings (time, actorsSubjects) {
   return function (state) {
     if (state.mode === 'playing') {
+      const timeSinceStartedPlaying = time.appTime - state.startedPlayingAt.appTime;
+
+      const animation = selectedAnimation(state);
+
+      const actors = animation.actors;
+
+      Object.keys(actors).forEach(actorKey => {
+        const actor = actors[actorKey];
+
+        actorsSubjects[actorKey].onNext({position: tween(actor, timeSinceStartedPlaying)});
+      });
     }
     return state;
   };
@@ -282,10 +293,14 @@ export default function editor ({DOM, animation$, storage}) {
     .sample(mode$.filter(mode => mode === 'playing'))
     .map(updateStartedPlaying);
 
+  const actor0Subject = new Subject();
+  const actor1Subject = new Subject();
+  const actor2Subject = new Subject();
+
   const actors$ = Observable.just([
-    Actor({DOM, props: Observable.just({imagePath: '/paddle.png', name: '0', position: {x: 150, y: 250}})}, '0'),
-    Actor({DOM, props: Observable.just({imagePath: '/ball.png', name: '1', position: {x: 500, y: 250}})}, '1'),
-    Actor({DOM, props: Observable.just({imagePath: '/paddle.png', name: '2', position: {x: 850, y: 250}})}, '2')
+    Actor({DOM, props: actor0Subject.startWith({imagePath: '/paddle.png', name: '0', position: {x: 150, y: 250}})}, '0'),
+    Actor({DOM, props: actor1Subject.startWith({imagePath: '/ball.png', name: '1', position: {x: 500, y: 250}})}, '1'),
+    Actor({DOM, props: actor2Subject.startWith({imagePath: '/paddle.png', name: '2', position: {x: 850, y: 250}})}, '2')
   ]);
 
   const animationWaypoint$ = actors$.flatMap(
@@ -305,7 +320,9 @@ export default function editor ({DOM, animation$, storage}) {
     .events('click')
     .map(selectAnimation);
 
-  const tweenWhenPlaying$ = time$.map(tweenAllTheThings);
+  const actorsSubjects$ = Observable.just([actor0Subject, actor1Subject, actor2Subject]);
+
+  const tweenWhenPlaying$ = time$.withLatestFrom(actorsSubjects$, tweenAllTheThings);
 
   const action$ = Observable.merge(
     loadState$,
